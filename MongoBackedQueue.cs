@@ -139,8 +139,7 @@ namespace bilong.MongoUtils
     public enum QueuedState
     {
         Waiting,
-        Processing,
-        Completed
+        Processing
     }
 
     public interface IPersistedQueue<T> where T: IPersistedQueueable
