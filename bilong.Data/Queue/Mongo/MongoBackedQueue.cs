@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
-namespace bilong.MongoUtils
+namespace bilong.Data.Queue.Mongo
 {
     /// <summary>
     /// Implements a queue backed by MongoDB. Note that we do not guarantee that items will be
@@ -134,41 +134,5 @@ namespace bilong.MongoUtils
         {
             public QueuedItemIdExistsException(string message) : base(message) { }
         }
-    }
-
-    public enum QueuedState
-    {
-        Waiting,
-        Processing
-    }
-
-    public interface IPersistedQueue<T> where T: IPersistedQueueable
-    {
-        Task Enqueue(T item);
-        Task<T> DequeueBegin();
-        Task DequeueComplete(T item);
-    }
-
-    public interface IPersistedQueueable
-    {
-        Guid Id { get; set; }
-        DateTime LastStateChanged { get; set; }
-        QueuedState State { get; set; }
-    }
-
-    public class MongoBackedQueueInfoProvider<T>
-    {
-        public MongoBackedQueueInfoProvider(string databaseName, string collectionName, int staleMinutes)
-        {
-            DatabaseName = databaseName;
-            CollectionName = collectionName;
-            StaleMinutes = staleMinutes;
-        }
-
-        public string DatabaseName { get; private set; }
-
-        public string CollectionName { get; private set; }
-
-        public int StaleMinutes { get; private set; }
     }
 }
