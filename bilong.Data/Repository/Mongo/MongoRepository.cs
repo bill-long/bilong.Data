@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -7,7 +8,7 @@ using MongoDB.Driver;
 
 namespace bilong.Data.Repository.Mongo
 {
-    public class MongoRepository<T> : IRepository<T> where T : IStorable
+    public class MongoRepository<T> : IRepository<T>
     {
         protected readonly IMongoCollection<T> Collection;
 
@@ -17,15 +18,9 @@ namespace bilong.Data.Repository.Mongo
             Collection = db.GetCollection<T>(typeof(T).Name);
         }
 
-        #region IStorable
-
-        public async Task<T> Add(T entity, string userId)
+        public async Task<T> Add(T entity)
         {
             var time = DateTime.UtcNow;
-            entity.CreatorId = userId;
-            entity.CreatedTime = time;
-            entity.ModifierId = userId;
-            entity.ModifiedTime = time;
             await Collection.InsertOneAsync(entity);
             return entity;
         }
@@ -42,6 +37,12 @@ namespace bilong.Data.Repository.Mongo
             return result.ToEnumerable();
         }
 
+        public async Task<IEnumerable<T>> Find(string filter)
+        {
+            var exp = DynamicExpressionParser.ParseLambda<T, bool>(null, false, filter);
+            return await Find(exp);
+        }
+
         public async Task<T> FindOne(Expression<Func<T, bool>> filter)
         {
             var cursor = await Collection.FindAsync(filter);
@@ -49,32 +50,15 @@ namespace bilong.Data.Repository.Mongo
             return result;
         }
 
-        public async Task<T> Replace(T entity, string userId)
+        public async Task<T> ReplaceOne(T entity, Expression<Func<T, bool>> selector)
         {
-            // We want to replace the document, except for the Creator
-            // properties on IStorable.
-
-            // First read the current object
-            var cursor = await Collection.FindAsync(e => e.Id == entity.Id);
-            var currentDoc = await cursor.FirstAsync();
-
-            // Now overwrite the values on the updated object with the ones from the old
-            entity.CreatedTime = currentDoc.CreatedTime;
-            entity.CreatorId = currentDoc.CreatorId;
-
-            // Also set the modifier values
-            entity.ModifiedTime = DateTime.UtcNow;
-            entity.ModifierId = userId;
-
-            var result = await Collection.ReplaceOneAsync(e => e.Id == entity.Id, entity);
+            var result = await Collection.ReplaceOneAsync(selector, entity);
             return entity;
         }
 
-        public async Task Delete(T entity, string userId)
+        public async Task DeleteOne(Expression<Func<T, bool>> selector)
         {
-            await Collection.DeleteOneAsync(d => d.Id == entity.Id);
+            await Collection.DeleteOneAsync(selector);
         }
-
-        #endregion
     }
 }

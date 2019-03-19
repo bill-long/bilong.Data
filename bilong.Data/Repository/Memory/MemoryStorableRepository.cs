@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace bilong.Data.Repository.Memory
 {
-    public class MemoryRepository<T> : IRepository<T> where T : IStorable
+    public class MemoryStorableRepository<T> : IStorableRepository<T> where T : IStorable
     {
         private readonly Dictionary<object, T> _memoryStore = new Dictionary<object, T>();
 

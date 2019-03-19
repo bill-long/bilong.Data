@@ -14,7 +14,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace bilong.Data.Repository.Couchbase
 {
-    public class CouchbaseRepository
+    public class CouchbaseStorableRepository
     {
         public static ClientConfiguration GetClientConfiguration()
         {
@@ -29,11 +29,11 @@ namespace bilong.Data.Repository.Couchbase
         }
     }
 
-    public class CouchbaseRepository<T> : IRepository<T> where T : IStorable
+    public class CouchbaseStorableRepository<T> : IStorableRepository<T> where T : IStorable
     {
         private readonly IBucketContext _context;
 
-        public CouchbaseRepository()
+        public CouchbaseStorableRepository()
         {
             _context = new BucketContext(ClusterHelper.GetBucket(typeof(T).Name));
         }
