@@ -12,10 +12,10 @@ namespace bilong.Data.Repository.Mongo
     {
         protected readonly IMongoCollection<T> Collection;
 
-        public MongoRepository(IMongoClient mongoClient, string databaseName)
+        public MongoRepository(IMongoClient mongoClient, string databaseName, string collectionName = null)
         {
             var db = mongoClient.GetDatabase(databaseName);
-            Collection = db.GetCollection<T>(typeof(T).Name);
+            Collection = db.GetCollection<T>(collectionName ?? typeof(T).Name);
         }
 
         public async Task<T> Add(T entity)
@@ -50,9 +50,9 @@ namespace bilong.Data.Repository.Mongo
             return result;
         }
 
-        public async Task<T> ReplaceOne(T entity, Expression<Func<T, bool>> selector)
+        public async Task<T> ReplaceOne(T entity, Expression<Func<T, bool>> selector, bool isUpsert = false)
         {
-            var result = await Collection.ReplaceOneAsync(selector, entity);
+            var result = await Collection.ReplaceOneAsync(selector, entity, new UpdateOptions{IsUpsert = isUpsert});
             return entity;
         }
 
